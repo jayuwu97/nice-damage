@@ -1,5 +1,7 @@
 package org.nice;
 
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import net.runelite.client.callback.ClientThread;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -30,6 +32,9 @@ public class Damage69ScreenshotPlugin extends Plugin
 {
     @Inject
     private Client client;
+
+    @Inject
+    private ScheduledExecutorService scheduledExecutorService;
 
     @Inject
     private DrawManager drawManager;
@@ -88,6 +93,14 @@ public class Damage69ScreenshotPlugin extends Plugin
 
                 takeScreenshot(bufferedImage);
             });
+
+            scheduledExecutorService.schedule(() ->
+                            clientThread.invokeLater(() ->
+                                    client.getLocalPlayer().setOverheadText(null)
+                            ),
+                    3,
+                    TimeUnit.SECONDS
+            );
         }
     }
 
