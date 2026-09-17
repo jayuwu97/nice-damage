@@ -7,11 +7,7 @@ public class ExamplePluginTest
 {
 	public static void main(String[] args) throws Exception
 	{
-		ExternalPluginManager.loadBuiltin(
-				ExamplePlugin.class,
-				Damage69ScreenshotPlugin.class
-		);
-
+		ExternalPluginManager.loadBuiltin(Damage69ScreenshotPlugin.class);
 		RuneLite.main(args);
 	}
 }

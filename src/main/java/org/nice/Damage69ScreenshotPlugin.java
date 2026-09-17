@@ -1,5 +1,6 @@
 package org.nice;
 
+import lombok.extern.slf4j.Slf4j;
 import com.google.inject.Provides;
 import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
@@ -17,6 +18,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+@Slf4j
 @PluginDescriptor(
         name = "69. Nice.",
         description = "Takes a screenshot whenever you deal 69 damage"
@@ -38,7 +40,7 @@ public class Damage69ScreenshotPlugin extends Plugin
     @Override
     protected void startUp()
     {
-        System.out.println("===== 69 PLUGIN LOADED =====");
+        log.info("===== 69 PLUGIN LOADED =====");
     }
 
     @Subscribe
@@ -46,7 +48,7 @@ public class Damage69ScreenshotPlugin extends Plugin
     {
         if (event.getHitsplat().getAmount() == 69)
         {
-            System.out.println("===== 69 DAMAGE DETECTED =====");
+            log.debug("===== 69 DAMAGE DETECTED =====");
 
             // Show "nice" above your character
             if (config.overheadText())
@@ -69,9 +71,9 @@ public class Damage69ScreenshotPlugin extends Plugin
             {
                 try
                 {
-                    System.out.println("===== WAITING 100MS =====");
+                    log.debug("===== WAITING 100MS =====");
                     Thread.sleep(100);
-                    System.out.println("===== TAKING SCREENSHOT =====");
+                    log.debug("===== TAKING SCREENSHOT =====");
                     takeScreenshot();
 
                     //Remove overhead text after another 3 seconds
@@ -117,11 +119,11 @@ public class Damage69ScreenshotPlugin extends Plugin
 
             ImageIO.write(image, "png", file);
 
-            System.out.println("NICE SCREENSHOT: " + file);
+            log.debug("NICE SCREENSHOT: {}", file);
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            log.error("Failed to take screenshot", e);
         }
     }
 }
