@@ -5,7 +5,7 @@ import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 
 @ConfigGroup("nice69")
-public interface ExampleConfig extends Config
+public interface NiceConfig extends Config
 {
 	@ConfigItem(
 			keyName = "overheadText",

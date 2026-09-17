@@ -43,14 +43,14 @@ public class Damage69ScreenshotPlugin extends Plugin
     private ClientThread clientThread;
 
     @Inject
-    private ExampleConfig config;
+    private NiceConfig config;
 
     private Filepath screenshotDirectory;
 
     @Provides
-    ExampleConfig provideConfig(ConfigManager configManager)
+    NiceConfig provideConfig(ConfigManager configManager)
     {
-        return configManager.getConfig(ExampleConfig.class);
+        return configManager.getConfig(NiceConfig.class);
     }
 
     @Override
