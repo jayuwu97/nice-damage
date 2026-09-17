@@ -1,5 +1,9 @@
 package org.nice;
 
+import net.runelite.client.callback.ClientThread;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import net.runelite.client.ui.DrawManager;
 import lombok.extern.slf4j.Slf4j;
 import com.google.inject.Provides;
 import net.runelite.api.ChatMessageType;
@@ -12,7 +16,6 @@ import net.runelite.client.plugins.PluginDescriptor;
 
 import javax.inject.Inject;
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -27,6 +30,12 @@ public class Damage69ScreenshotPlugin extends Plugin
 {
     @Inject
     private Client client;
+
+    @Inject
+    private DrawManager drawManager;
+
+    @Inject
+    private ClientThread clientThread;
 
     @Inject
     private ExampleConfig config;
@@ -50,13 +59,11 @@ public class Damage69ScreenshotPlugin extends Plugin
         {
             log.debug("===== 69 DAMAGE DETECTED =====");
 
-            // Show "nice" above your character
             if (config.overheadText())
             {
                 client.getLocalPlayer().setOverheadText("Nice.");
             }
 
-            // Show "nice" in the chatbox
             if (config.chatMessage())
             {
                 client.addChatMessage(
@@ -67,39 +74,27 @@ public class Damage69ScreenshotPlugin extends Plugin
                 );
             }
 
-            new Thread(() ->
+            drawManager.requestNextFrameListener(image ->
             {
-                try
-                {
-                    log.debug("===== WAITING 100MS =====");
-                    Thread.sleep(100);
-                    log.debug("===== TAKING SCREENSHOT =====");
-                    takeScreenshot();
+                BufferedImage bufferedImage = new BufferedImage(
+                        image.getWidth(null),
+                        image.getHeight(null),
+                        BufferedImage.TYPE_INT_ARGB
+                );
 
-                    //Remove overhead text after another 3 seconds
-                    Thread.sleep(3000);
-                    client.getLocalPlayer().setOverheadText(null);
-                }
-                catch (InterruptedException e)
-                {
-                    Thread.currentThread().interrupt();
-                }
-            }).start();
+                Graphics2D graphics = bufferedImage.createGraphics();
+                graphics.drawImage(image, 0, 0, null);
+                graphics.dispose();
+
+                takeScreenshot(bufferedImage);
+            });
         }
     }
 
-    private void takeScreenshot()
+        private void takeScreenshot(BufferedImage image)
     {
         try
         {
-            Robot robot = new Robot();
-
-            Rectangle window = client.getCanvas().getBounds();
-            Point location = client.getCanvas().getLocationOnScreen();
-
-            window.setLocation(location);
-
-            BufferedImage image = robot.createScreenCapture(window);
 
             String timestamp = new SimpleDateFormat(
                     "yyyy-MM-dd_HH-mm-ss-SSS"
