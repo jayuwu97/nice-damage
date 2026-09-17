@@ -15,9 +15,6 @@ import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.util.Filepath;
-import java.util.List;
-import net.runelite.client.ui.NavigationButton;
-import net.runelite.client.ui.ClientToolbar;
 
 import javax.inject.Inject;
 import javax.imageio.ImageIO;
@@ -28,7 +25,7 @@ import java.util.Date;
 @Slf4j
 @PluginDescriptor(
         name = "69. Nice.",
-        description = "Takes a screenshot whenever you deal 69 damage",
+        description = "Takes a screenshot whenever you deal 69 damage. Save location: runelite/plugin-data/nice-damage/screenshots.",
         internalName = "nice-damage"
 )
 public class Damage69ScreenshotPlugin extends Plugin
@@ -50,16 +47,6 @@ public class Damage69ScreenshotPlugin extends Plugin
 
     private Filepath screenshotDirectory;
 
-    @Inject
-    private ClientToolbar clientToolbar;
-
-    @Inject
-    private NicePanel nicePanel;
-
-    private NavigationButton navigationButton;
-
-
-
     @Provides
     ExampleConfig provideConfig(ConfigManager configManager)
     {
@@ -74,32 +61,10 @@ public class Damage69ScreenshotPlugin extends Plugin
         try
         {
             screenshotDirectory = getPluginDirectory().join("screenshots");
-
-            BufferedImage icon = ImageIO.read(
-                    getClass().getResource("/icon.png")
-            );
-
-            navigationButton = NavigationButton.builder()
-                    .tooltip("69. Nice.")
-                    .icon(icon)
-                    .panel(nicePanel)
-                    .build();
-
-            clientToolbar.addNavigation(navigationButton);
         }
         catch (Exception e)
         {
-            log.error("Failed to start plugin", e);
-        }
-    }
-
-    @Override
-    protected void shutDown()
-    {
-        if (navigationButton != null)
-        {
-            clientToolbar.removeNavigation(navigationButton);
-            navigationButton = null;
+            log.error("Failed to set screenshot directory", e);
         }
     }
 
@@ -175,21 +140,6 @@ public class Damage69ScreenshotPlugin extends Plugin
         catch (Exception e)
         {
             log.error("Failed to take screenshot", e);
-        }
-    }
-    public void chooseScreenshotDirectory()
-    {
-        Filepath.Chooser chooser = new Filepath.Chooser()
-                .setAcceptsDirectories()
-                .setDialogTitle("Choose screenshot folder");
-
-        List<Filepath> selected = chooser.showDialog(client);
-
-        if (selected != null && !selected.isEmpty())
-        {
-            screenshotDirectory = selected.get(0);
-
-            log.info("Screenshot directory changed to: {}", screenshotDirectory);
         }
     }
 }
