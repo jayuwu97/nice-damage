@@ -1,4 +1,4 @@
-package com.example;
+package org.nice;
 
 import com.google.inject.Provides;
 import javax.inject.Inject;
@@ -41,7 +41,6 @@ public class ExamplePlugin extends Plugin
 	{
 		if (gameStateChanged.getGameState() == GameState.LOGGED_IN)
 		{
-			client.addChatMessage(ChatMessageType.GAMEMESSAGE, "", "Example says " + config.greeting(), null);
 		}
 	}
 
