@@ -4,7 +4,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import net.runelite.client.callback.ClientThread;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import net.runelite.client.ui.DrawManager;
 import lombok.extern.slf4j.Slf4j;
 import com.google.inject.Provides;
@@ -15,18 +14,22 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.util.Filepath;
+import java.util.List;
+import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.ui.ClientToolbar;
 
 import javax.inject.Inject;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Slf4j
 @PluginDescriptor(
         name = "69. Nice.",
-        description = "Takes a screenshot whenever you deal 69 damage"
+        description = "Takes a screenshot whenever you deal 69 damage",
+        internalName = "nice-damage"
 )
 public class Damage69ScreenshotPlugin extends Plugin
 {
@@ -45,6 +48,18 @@ public class Damage69ScreenshotPlugin extends Plugin
     @Inject
     private ExampleConfig config;
 
+    private Filepath screenshotDirectory;
+
+    @Inject
+    private ClientToolbar clientToolbar;
+
+    @Inject
+    private NicePanel nicePanel;
+
+    private NavigationButton navigationButton;
+
+
+
     @Provides
     ExampleConfig provideConfig(ConfigManager configManager)
     {
@@ -55,6 +70,37 @@ public class Damage69ScreenshotPlugin extends Plugin
     protected void startUp()
     {
         log.info("===== 69 PLUGIN LOADED =====");
+
+        try
+        {
+            screenshotDirectory = getPluginDirectory().join("screenshots");
+
+            BufferedImage icon = ImageIO.read(
+                    getClass().getResource("/icon.png")
+            );
+
+            navigationButton = NavigationButton.builder()
+                    .tooltip("69. Nice.")
+                    .icon(icon)
+                    .panel(nicePanel)
+                    .build();
+
+            clientToolbar.addNavigation(navigationButton);
+        }
+        catch (Exception e)
+        {
+            log.error("Failed to start plugin", e);
+        }
+    }
+
+    @Override
+    protected void shutDown()
+    {
+        if (navigationButton != null)
+        {
+            clientToolbar.removeNavigation(navigationButton);
+            navigationButton = null;
+        }
     }
 
     @Subscribe
@@ -104,34 +150,46 @@ public class Damage69ScreenshotPlugin extends Plugin
         }
     }
 
-        private void takeScreenshot(BufferedImage image)
+    private void takeScreenshot(BufferedImage image)
     {
         try
         {
-
             String timestamp = new SimpleDateFormat(
                     "yyyy-MM-dd_HH-mm-ss-SSS"
             ).format(new Date());
 
-            File folder = new File(
-                    System.getProperty("user.home"),
-                    ".runelite/screenshots/nice"
-            );
+            Filepath folder = screenshotDirectory;
+            folder.createDirectories();
 
-            folder.mkdirs();
-
-            File file = new File(
-                    folder,
+            Filepath file = folder.join(
                     "nice_" + timestamp + ".png"
             );
 
-            ImageIO.write(image, "png", file);
+            try (java.io.OutputStream outputStream = file.openOutputStream())
+            {
+                ImageIO.write(image, "png", outputStream);
+            }
 
             log.debug("NICE SCREENSHOT: {}", file);
         }
         catch (Exception e)
         {
             log.error("Failed to take screenshot", e);
+        }
+    }
+    public void chooseScreenshotDirectory()
+    {
+        Filepath.Chooser chooser = new Filepath.Chooser()
+                .setAcceptsDirectories()
+                .setDialogTitle("Choose screenshot folder");
+
+        List<Filepath> selected = chooser.showDialog(client);
+
+        if (selected != null && !selected.isEmpty())
+        {
+            screenshotDirectory = selected.get(0);
+
+            log.info("Screenshot directory changed to: {}", screenshotDirectory);
         }
     }
 }
