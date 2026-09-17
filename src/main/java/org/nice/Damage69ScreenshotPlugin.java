@@ -24,7 +24,7 @@ import java.util.Date;
 
 @Slf4j
 @PluginDescriptor(
-        name = "69. Nice.",
+        name = "Nice.",
         description = "Takes a screenshot whenever you deal 69 damage. Save location: runelite/plugin-data/nice-damage/screenshots.",
         internalName = "nice-damage"
 )
