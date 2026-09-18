@@ -14,7 +14,9 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.util.Filepath;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import javax.inject.Inject;
 import javax.imageio.ImageIO;
@@ -25,7 +27,7 @@ import java.util.Date;
 @Slf4j
 @PluginDescriptor(
         name = "Nice.",
-        description = "Takes a screenshot whenever you deal 69 damage. Save location: runelite/plugin-data/nice-damage/screenshots.",
+        description = "Takes a screenshot every time you deal 69 damage. Saves to .runelite/screenshots/nice",
         internalName = "nice-damage"
 )
 public class Damage69ScreenshotPlugin extends Plugin
@@ -45,7 +47,7 @@ public class Damage69ScreenshotPlugin extends Plugin
     @Inject
     private NiceConfig config;
 
-    private Filepath screenshotDirectory;
+    private Path customScreenshotDirectory;
 
     @Provides
     NiceConfig provideConfig(ConfigManager configManager)
@@ -60,7 +62,16 @@ public class Damage69ScreenshotPlugin extends Plugin
 
         try
         {
-            screenshotDirectory = getPluginDirectory().join("screenshots");
+            customScreenshotDirectory = Paths.get(
+                    System.getProperty("user.home"),
+                    ".runelite",
+                    "screenshots",
+                    "nice"
+            );
+
+            Files.createDirectories(customScreenshotDirectory);
+
+            log.info("Screenshot directory: {}", customScreenshotDirectory);
         }
         catch (Exception e)
         {
@@ -123,14 +134,13 @@ public class Damage69ScreenshotPlugin extends Plugin
                     "yyyy-MM-dd_HH-mm-ss-SSS"
             ).format(new Date());
 
-            Filepath folder = screenshotDirectory;
-            folder.createDirectories();
+            Files.createDirectories(customScreenshotDirectory);
 
-            Filepath file = folder.join(
+            Path file = customScreenshotDirectory.resolve(
                     "nice_" + timestamp + ".png"
             );
 
-            try (java.io.OutputStream outputStream = file.openOutputStream())
+            try (java.io.OutputStream outputStream = Files.newOutputStream(file))
             {
                 ImageIO.write(image, "png", outputStream);
             }
