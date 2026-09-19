@@ -14,9 +14,7 @@ import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import net.runelite.client.util.Filepath;
 
 import javax.inject.Inject;
 import javax.imageio.ImageIO;
@@ -27,7 +25,7 @@ import java.util.Date;
 @Slf4j
 @PluginDescriptor(
         name = "Nice.",
-        description = "Takes a screenshot every time you deal 69 damage. Saves to .runelite/screenshots/nice",
+        description = "Takes a screenshot whenever you deal 69 damage. Save location: runelite/plugin-data/nice-damage/screenshots.",
         internalName = "nice-damage"
 )
 public class Damage69ScreenshotPlugin extends Plugin
@@ -47,7 +45,7 @@ public class Damage69ScreenshotPlugin extends Plugin
     @Inject
     private NiceConfig config;
 
-    private Path customScreenshotDirectory;
+    private Filepath screenshotDirectory;
 
     @Provides
     NiceConfig provideConfig(ConfigManager configManager)
@@ -62,16 +60,7 @@ public class Damage69ScreenshotPlugin extends Plugin
 
         try
         {
-            customScreenshotDirectory = Paths.get(
-                    System.getProperty("user.home"),
-                    ".runelite",
-                    "screenshots",
-                    "nice"
-            );
-
-            Files.createDirectories(customScreenshotDirectory);
-
-            log.info("Screenshot directory: {}", customScreenshotDirectory);
+            screenshotDirectory = getPluginDirectory().join("screenshots");
         }
         catch (Exception e)
         {
@@ -134,13 +123,14 @@ public class Damage69ScreenshotPlugin extends Plugin
                     "yyyy-MM-dd_HH-mm-ss-SSS"
             ).format(new Date());
 
-            Files.createDirectories(customScreenshotDirectory);
+            Filepath folder = screenshotDirectory;
+            folder.createDirectories();
 
-            Path file = customScreenshotDirectory.resolve(
+            Filepath file = folder.join(
                     "nice_" + timestamp + ".png"
             );
 
-            try (java.io.OutputStream outputStream = Files.newOutputStream(file))
+            try (java.io.OutputStream outputStream = file.openOutputStream())
             {
                 ImageIO.write(image, "png", outputStream);
             }
@@ -153,4 +143,3 @@ public class Damage69ScreenshotPlugin extends Plugin
         }
     }
 }
-
