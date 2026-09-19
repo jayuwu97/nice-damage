@@ -1,2 +1,2 @@
-# Example
-An example greeter plugin
+# Nice.
+Haha funny number
