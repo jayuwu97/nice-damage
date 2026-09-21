@@ -25,7 +25,7 @@ import java.util.Date;
 @Slf4j
 @PluginDescriptor(
         name = "Nice.",
-        description = "Takes a screenshot whenever you deal 69 damage. Save location: runelite/plugin-data/nice-damage/screenshots.",
+        description = "Takes a screenshot whenever you deal 69 damage.",
         internalName = "nice-damage"
 )
 public class Damage69ScreenshotPlugin extends Plugin
@@ -90,20 +90,23 @@ public class Damage69ScreenshotPlugin extends Plugin
                 );
             }
 
-            drawManager.requestNextFrameListener(image ->
+            if (config.screenshot())
             {
-                BufferedImage bufferedImage = new BufferedImage(
-                        image.getWidth(null),
-                        image.getHeight(null),
-                        BufferedImage.TYPE_INT_ARGB
-                );
+                drawManager.requestNextFrameListener(image ->
+                {
+                    BufferedImage bufferedImage = new BufferedImage(
+                            image.getWidth(null),
+                            image.getHeight(null),
+                            BufferedImage.TYPE_INT_ARGB
+                    );
 
-                Graphics2D graphics = bufferedImage.createGraphics();
-                graphics.drawImage(image, 0, 0, null);
-                graphics.dispose();
+                    Graphics2D graphics = bufferedImage.createGraphics();
+                    graphics.drawImage(image, 0, 0, null);
+                    graphics.dispose();
 
-                takeScreenshot(bufferedImage);
-            });
+                    takeScreenshot(bufferedImage);
+                });
+            }
 
             scheduledExecutorService.schedule(() ->
                             clientThread.invokeLater(() ->
@@ -143,3 +146,4 @@ public class Damage69ScreenshotPlugin extends Plugin
         }
     }
 }
+
