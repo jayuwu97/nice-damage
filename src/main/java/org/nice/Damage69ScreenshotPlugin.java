@@ -1,26 +1,32 @@
 package org.nice;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import net.runelite.client.callback.ClientThread;
-import java.awt.Graphics2D;
-import net.runelite.client.ui.DrawManager;
-import lombok.extern.slf4j.Slf4j;
+
+import javax.imageio.ImageIO;
+import javax.inject.Inject;
+
 import com.google.inject.Provides;
-import net.runelite.api.ChatMessageType;
+
+import lombok.extern.slf4j.Slf4j;
+
+import net.runelite.api.Actor;
 import net.runelite.api.Client;
+import net.runelite.api.NPC;
+import net.runelite.api.Player;
+import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.HitsplatApplied;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
+import net.runelite.client.ui.DrawManager;
 import net.runelite.client.util.Filepath;
-
-import javax.inject.Inject;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 @Slf4j
 @PluginDescriptor(
@@ -47,6 +53,8 @@ public class Damage69ScreenshotPlugin extends Plugin
 
     private Filepath screenshotDirectory;
 
+    private NPC lastAttackedNpc;
+
     @Provides
     NiceConfig provideConfig(ConfigManager configManager)
     {
@@ -68,54 +76,113 @@ public class Damage69ScreenshotPlugin extends Plugin
         }
     }
 
+    @Override
+    protected void shutDown()
+    {
+        lastAttackedNpc = null;
+    }
+
+    @Subscribe
+    public void onAnimationChanged(AnimationChanged event)
+    {
+        Actor actor = event.getActor();
+
+        if (actor != client.getLocalPlayer())
+        {
+            return;
+        }
+
+        Actor interacting = client.getLocalPlayer().getInteracting();
+
+        if (interacting instanceof NPC)
+        {
+            lastAttackedNpc = (NPC) interacting;
+
+            log.debug("Tracking attacked NPC: {}", lastAttackedNpc.getName());
+        }
+    }
+
     @Subscribe
     public void onHitsplatApplied(HitsplatApplied event)
     {
-        if (event.getHitsplat().getAmount() == 69)
+        if (event.getHitsplat().getAmount() != 69)
         {
-            log.debug("===== 69 DAMAGE DETECTED =====");
+            return;
+        }
 
-            if (config.overheadText())
-            {
-                client.getLocalPlayer().setOverheadText("Nice.");
-            }
+        if (event.getActor() == client.getLocalPlayer())
+        {
+            log.debug("Ignoring 69 hitsplat on local player.");
+            return;
+        }
 
-            if (config.chatMessage())
-            {
-                client.addChatMessage(
-                        ChatMessageType.PUBLICCHAT,
-                        client.getLocalPlayer().getName(),
-                        "Nice.",
-                        null
-                );
-            }
+        /*
+         * We only care about NPCs.
+         *
+         * This prevents another player's 69 damage on a player
+         * from triggering the plugin.
+         */
+        if (!(event.getActor() instanceof NPC))
+        {
+            log.debug("Ignoring 69 hitsplat on non-NPC.");
+            return;
+        }
 
-            if (config.screenshot())
-            {
-                drawManager.requestNextFrameListener(image ->
-                {
-                    BufferedImage bufferedImage = new BufferedImage(
-                            image.getWidth(null),
-                            image.getHeight(null),
-                            BufferedImage.TYPE_INT_ARGB
-                    );
+        NPC target = (NPC) event.getActor();
 
-                    Graphics2D graphics = bufferedImage.createGraphics();
-                    graphics.drawImage(image, 0, 0, null);
-                    graphics.dispose();
+        if (target != lastAttackedNpc)
+        {
+            log.debug("Ignoring 69 hitsplat on NPC we were not attacking.");
+            return;
+        }
 
-                    takeScreenshot(bufferedImage);
-                });
-            }
+        log.debug("===== 69 DAMAGE DEALT BY LOCAL PLAYER =====");
 
-            scheduledExecutorService.schedule(() ->
-                            clientThread.invokeLater(() ->
-                                    client.getLocalPlayer().setOverheadText(null)
-                            ),
-                    3,
-                    TimeUnit.SECONDS
+        triggerNice();
+    }
+
+    private void triggerNice()
+    {
+        if (config.overheadText())
+        {
+            client.getLocalPlayer().setOverheadText("Nice.");
+        }
+
+        if (config.chatMessage())
+        {
+            client.addChatMessage(
+                    net.runelite.api.ChatMessageType.PUBLICCHAT,
+                    client.getLocalPlayer().getName(),
+                    "Nice.",
+                    null
             );
         }
+
+        if (config.screenshot())
+        {
+            drawManager.requestNextFrameListener(image ->
+            {
+                BufferedImage bufferedImage = new BufferedImage(
+                        image.getWidth(null),
+                        image.getHeight(null),
+                        BufferedImage.TYPE_INT_ARGB
+                );
+
+                Graphics2D graphics = bufferedImage.createGraphics();
+                graphics.drawImage(image, 0, 0, null);
+                graphics.dispose();
+
+                takeScreenshot(bufferedImage);
+            });
+        }
+
+        scheduledExecutorService.schedule(
+                () -> clientThread.invokeLater(
+                        () -> client.getLocalPlayer().setOverheadText(null)
+                ),
+                3,
+                TimeUnit.SECONDS
+        );
     }
 
     private void takeScreenshot(BufferedImage image)
@@ -146,4 +213,3 @@ public class Damage69ScreenshotPlugin extends Plugin
         }
     }
 }
-
