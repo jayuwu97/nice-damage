@@ -10,7 +10,7 @@ public interface NiceConfig extends Config
 	@ConfigItem(
 			keyName = "screenshot",
 			name = "Screenshot",
-			description = "Take a screenshot whenever you deal 69 damage",
+			description = "Take a screenshot whenever you deal 69 damage - Save location: .runelite/plugin-data/nice-damage-screenshots",
 			position = 0
 	)
 	default boolean screenshot()
