@@ -25,7 +25,7 @@ import java.util.Date;
 @Slf4j
 @PluginDescriptor(
         name = "Nice.",
-        description = "Takes a screenshot whenever you deal 69 damage.",
+        description = "Takes a screenshot whenever you deal 69 damage. Save location: .runelite/plugin-data/nice-damage-screenshots",
         internalName = "nice-damage"
 )
 public class Damage69ScreenshotPlugin extends Plugin
