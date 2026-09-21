@@ -15,6 +15,7 @@ import com.google.inject.Provides;
 import lombok.extern.slf4j.Slf4j;
 
 import net.runelite.api.Client;
+import net.runelite.api.NPC;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
@@ -27,7 +28,7 @@ import net.runelite.client.util.Filepath;
 @Slf4j
 @PluginDescriptor(
         name = "Nice.",
-        description = "Takes a screenshot whenever you deal 69 damage. Save location: .runelite/plugin-data/nice-damage/screenshots",
+        description = "Takes a screenshot whenever you deal 69 damage. Save location: .runelite/plugin-data/nice-damage-screenshots",
         internalName = "nice-damage"
 )
 public class Damage69ScreenshotPlugin extends Plugin
@@ -76,6 +77,12 @@ public class Damage69ScreenshotPlugin extends Plugin
         if (event.getHitsplat().getAmount() != 69
                 || !event.getHitsplat().isMine())
         {
+            return;
+        }
+
+        if (!(event.getActor() instanceof NPC))
+        {
+            log.debug("Ignoring 69 hitsplat on non-NPC.");
             return;
         }
 
