@@ -14,11 +14,7 @@ import com.google.inject.Provides;
 
 import lombok.extern.slf4j.Slf4j;
 
-import net.runelite.api.Actor;
 import net.runelite.api.Client;
-import net.runelite.api.NPC;
-import net.runelite.api.Player;
-import net.runelite.api.events.AnimationChanged;
 import net.runelite.api.events.HitsplatApplied;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
@@ -31,7 +27,7 @@ import net.runelite.client.util.Filepath;
 @Slf4j
 @PluginDescriptor(
         name = "Nice.",
-        description = "Takes a screenshot whenever you deal 69 damage. Save location: .runelite/plugin-data/nice-damage-screenshots",
+        description = "Takes a screenshot whenever you deal 69 damage. Save location: .runelite/plugin-data/nice-damage/screenshots",
         internalName = "nice-damage"
 )
 public class Damage69ScreenshotPlugin extends Plugin
@@ -52,8 +48,6 @@ public class Damage69ScreenshotPlugin extends Plugin
     private NiceConfig config;
 
     private Filepath screenshotDirectory;
-
-    private NPC lastAttackedNpc;
 
     @Provides
     NiceConfig provideConfig(ConfigManager configManager)
@@ -76,63 +70,12 @@ public class Damage69ScreenshotPlugin extends Plugin
         }
     }
 
-    @Override
-    protected void shutDown()
-    {
-        lastAttackedNpc = null;
-    }
-
-    @Subscribe
-    public void onAnimationChanged(AnimationChanged event)
-    {
-        Actor actor = event.getActor();
-
-        if (actor != client.getLocalPlayer())
-        {
-            return;
-        }
-
-        Actor interacting = client.getLocalPlayer().getInteracting();
-
-        if (interacting instanceof NPC)
-        {
-            lastAttackedNpc = (NPC) interacting;
-
-            log.debug("Tracking attacked NPC: {}", lastAttackedNpc.getName());
-        }
-    }
-
     @Subscribe
     public void onHitsplatApplied(HitsplatApplied event)
     {
-        if (event.getHitsplat().getAmount() != 69)
+        if (event.getHitsplat().getAmount() != 69
+                || !event.getHitsplat().isMine())
         {
-            return;
-        }
-
-        if (event.getActor() == client.getLocalPlayer())
-        {
-            log.debug("Ignoring 69 hitsplat on local player.");
-            return;
-        }
-
-        /*
-         * We only care about NPCs.
-         *
-         * This prevents another player's 69 damage on a player
-         * from triggering the plugin.
-         */
-        if (!(event.getActor() instanceof NPC))
-        {
-            log.debug("Ignoring 69 hitsplat on non-NPC.");
-            return;
-        }
-
-        NPC target = (NPC) event.getActor();
-
-        if (target != lastAttackedNpc)
-        {
-            log.debug("Ignoring 69 hitsplat on NPC we were not attacking.");
             return;
         }
 
